@@ -33,9 +33,9 @@ exports.answer = function(req, res) {
     resultado = 'Correcto';
   }
   res.render(
-    'quizes/answer', 
-    { quiz: req.quiz, 
-      respuesta: resultado, 
+    'quizes/answer',
+    { quiz: req.quiz,
+      respuesta: resultado,
       errors: []
     }
   );
@@ -43,8 +43,8 @@ exports.answer = function(req, res) {
 
 // GET /quizes/new
 exports.new = function(req, res) {
-  var quiz = models.Quiz.build( // crea objeto quiz 
-    {pregunta: "Pregunta", respuesta: "Respuesta"}
+  var quiz = models.Quiz.build( // crea objeto quiz
+    {pregunta: "Pregunta", respuesta: "Respuesta", tema: "Tema"}
   );
 
   res.render('quizes/new', {quiz: quiz, errors: []});
@@ -62,8 +62,8 @@ exports.create = function(req, res) {
         res.render('quizes/new', {quiz: quiz, errors: err.errors});
       } else {
         quiz // save: guarda en DB campos pregunta y respuesta de quiz
-        .save({fields: ["pregunta", "respuesta"]})
-        .then( function(){ res.redirect('/quizes')}) 
+        .save({fields: ["pregunta", "respuesta", "tema"]})
+        .then( function(){ res.redirect('/quizes')})
       }      // res.redirect: Redirección HTTP a lista de preguntas
     }
   ).catch(function(error){next(error)});
@@ -72,7 +72,15 @@ exports.create = function(req, res) {
 // GET /quizes/:id/edit
 exports.edit = function(req, res) {
   var quiz = req.quiz;  // req.quiz: autoload de instancia de quiz
-
+  // Asigna el atributo "selected" del formulario al valor actual
+  // de la propiedad "tema".
+  switch (quiz.tema) {
+    case "otro": quiz.s1 = 'selected'; break;
+    case "humanidades": quiz.s2 = 'selected'; break;
+    case "ocio": quiz.s3 = 'selected'; break;
+    case "ciencia": quiz.s4 = 'selected'; break;
+    case "tecnologia": quiz.s5 = 'selected'; break;
+  }
   res.render('quizes/edit', {quiz: quiz, errors: []});
 };
 
@@ -80,6 +88,7 @@ exports.edit = function(req, res) {
 exports.update = function(req, res) {
   req.quiz.pregunta  = req.body.quiz.pregunta;
   req.quiz.respuesta = req.body.quiz.respuesta;
+  req.quiz.tema = req.body.quiz.tema;
 
   req.quiz
   .validate()
@@ -89,7 +98,7 @@ exports.update = function(req, res) {
         res.render('quizes/edit', {quiz: req.quiz, errors: err.errors});
       } else {
         req.quiz     // save: guarda campos pregunta y respuesta en DB
-        .save( {fields: ["pregunta", "respuesta"]})
+        .save( {fields: ["pregunta", "respuesta", "tema"]})
         .then( function(){ res.redirect('/quizes');});
       }     // Redirección HTTP a lista de preguntas (URL relativo)
     }
